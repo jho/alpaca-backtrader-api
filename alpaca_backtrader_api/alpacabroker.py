@@ -117,7 +117,9 @@ class AlpacaBroker(with_metaclass(MetaAlpacaBroker, BrokerBase)):
     }
 
     _ORDERSTATUS = {
-        'new': Order.Created,
+        # if we get a response from alpaca of `pending_new` or `new` it is the same as `Submitted` since it's up to Alpaca/Broker now to accept or reject it
+        'pending_new': Order.Submitted, 
+        'new': Order.Submitted,
         'accepted': Order.Accepted,
         'accepted_for_bidding': Order.Accepted,
         'canceled': Order.Canceled,
