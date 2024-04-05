@@ -794,9 +794,14 @@ class AlpacaStore(with_metaclass(MetaSingleton, object)):
                     break
                 self._process_transaction(order_id, trans)
 
+        o = None
         try:
             self.logger.debug(f"Submitting order {oref} {okwargs}")
             o = self.oapi.submit_order(**okwargs)
+            if not hasattr(o, 'id') and hasattr(o, 'message'):
+                code = getattr(o, 'code', None)
+                msg = getattr(o, 'description', getattr(o, 'message', ''))
+                raise RuntimeError(f"Error submitting order! (code: {code}, msg: {msg})")
             self.logger.debug(f"Order successfully submitted order {oref} (res: {o})")
             oid = o.id
             if okwargs['type'] == 'market':
@@ -818,8 +823,8 @@ class AlpacaStore(with_metaclass(MetaSingleton, object)):
 
         except Exception as e:
             self.logger.error(f"Error handling submitted order {oref} {okwargs}", exc_info=e)
-            if 'code' in o._raw:
-                desc = o.description if hasattr(o, "description") else ''
+            if o is not None and 'code' in o._raw:
+                desc = getattr(o, 'description', getattr(o, 'message', ''))
                 self.put_notification(f"error submitting order "
                                         f"code: {o.code}. msg: "
                                         f"{o.message}, desc: {desc}")
