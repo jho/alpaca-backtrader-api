@@ -5,7 +5,7 @@ import collections
 from curses import has_key
 import logging
 
-from backtrader import BrokerBase, Order, BuyOrder, SellOrder
+from backtrader import BrokerBase, Order, BuyOrder, SellOrder, num2date, date2num
 from backtrader.order import Order
 from backtrader.utils.py3 import with_metaclass, iteritems
 from backtrader.comminfo import CommInfoBase
@@ -73,7 +73,7 @@ class AlpacaBroker(with_metaclass(MetaAlpacaBroker, BrokerBase)):
 
     def update_positions(self):
         """
-        this method syncs the Alpaca real broker positions and the Backtrader
+        this method syncs the Alpaca real broker positions and the Backtrader, num2date, date2num
         broker instance. the positions is defined in BrokerBase(in getposition)
         and used in bbroker (the backtrader broker instance) with Data as the
         key. so we do the same here. we create a defaultdict of Position() with
@@ -197,6 +197,7 @@ class AlpacaBroker(with_metaclass(MetaAlpacaBroker, BrokerBase)):
                         exectype=exectype,
                         simulated=True
                     )
+                order.created.dt = date2num(o.created_at)
                 order.status = status
                 #order.tradeid = o.id
                 # icky, this is leaky, can we use the "create order" function with a "fake" order?
